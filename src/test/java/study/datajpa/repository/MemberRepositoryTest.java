@@ -3,6 +3,10 @@ package study.datajpa.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
@@ -173,5 +177,61 @@ class MemberRepositoryTest {
         Optional<Member> optionalMember = memberRepository.findOptionalByUsername("AAA");
 
         System.out.println("optionalMember.get() = " + optionalMember.get());
+    }
+
+    @Test
+    public void paging() {
+        //given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        //when
+        Page<Member> page = memberRepository.findPageByAge(age, pageRequest);
+//        List<Member> listResult = memberRepository.findPageByAge(age, pageRequest); //이렇게 반환타입 받으면 데이터만 받을 수 있음
+
+        //Page 를 반환하기 위해 Dto 로 매핑 가능
+        Page<MemberDto> toMap = page.map(m -> new MemberDto(m.getId(), m.getUsername(), null));
+
+        //then
+        List<Member> content = page.getContent();   //요청 내용에 따라 받은 데이터 list
+
+        assertThat(content.size()).isEqualTo(3);    // 페이징한 데이터 수
+        assertThat(page.getTotalElements()).isEqualTo(5);   // 전체 데이터 수 (totalCount)
+        assertThat(page.getNumber()).isEqualTo(0);  // 현재 페이지 번호
+        assertThat(page.getTotalPages()).isEqualTo(2);  //전체 페이지 수
+        assertThat(page.isFirst()).isTrue();    // 이 페이지가 첫번째 페이지인지 여부
+        assertThat(page.hasNext()).isTrue();    // 다음 페이지가 있는지 여부
+    }
+
+    @Test
+    public void slicing() {
+        //given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        //when
+        Slice<Member> slice = memberRepository.findSliceByAge(age, pageRequest);
+
+        //then
+        List<Member> content = slice.getContent();
+
+        assertThat(content.size()).isEqualTo(3);
+//        assertThat(slice.getTotalElements()).isEqualTo(5);    //slice 에서 지원 X
+        assertThat(slice.getNumber()).isEqualTo(0);
+//        assertThat(slice.getTotalPages()).isEqualTo(2);    //slice 에서 지원 X
+        assertThat(slice.isFirst()).isTrue();
+        assertThat(slice.hasNext()).isTrue();
     }
 }
