@@ -1,6 +1,8 @@
 package study.datajpa.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import study.datajpa.entity.Member;
 
 import java.util.List;
@@ -11,4 +13,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     //find...By - ... 에는 findHelloBy 처럼 설명이 들어가기도 한다.
     List<Member> findTop3HelloBy();
+
+//    @Query(name = "Member.findByUsername")
+    List<Member> findByUsername(@Param("username") String username);
 }
