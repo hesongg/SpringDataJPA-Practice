@@ -330,4 +330,45 @@ class MemberRepositoryTest {
     public void callCustom() {
         List<Member> result = memberRepository.findMemberCustom();
     }
+
+    @Test
+    public void projections() {
+
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+
+        Member member1 = new Member("member1", 10, teamA);
+        memberRepository.save(member1);
+
+        em.flush();
+        em.clear();
+
+        List<UsernameOnly> result = memberRepository.findProjectionsByUsername("member1");
+
+        for (UsernameOnly usernameOnly : result) {
+            System.out.println("usernameOnly = " + usernameOnly);
+            System.out.println("usernameOnly.getUsername() = " + usernameOnly.getUsername());
+        }
+
+        em.flush();
+        em.clear();
+
+//        List<UsernameOnlyDto> memberDto = memberRepository.findProjectionsDtoByUsername("member1");
+//        List<UsernameOnlyDto> memberDto = memberRepository.findProjectionsTypeByUsername("member1", UsernameOnlyDto.class);
+        List<NestedClosedProjections> memberDto = memberRepository.findProjectionsTypeByUsername("member1", NestedClosedProjections.class);
+
+        /*for (UsernameOnlyDto usernameOnlyDto : memberDto) {
+            System.out.println("usernameOnlyDto = " + usernameOnlyDto);
+            System.out.println("usernameOnlyDto.getUsername() = " + usernameOnlyDto.getUsername());
+        }*/
+
+        for (NestedClosedProjections nestedClosedProjections : memberDto) {
+            System.out.println("nestedClosedProjections = " + nestedClosedProjections);
+            System.out.println("nestedClosedProjections.getUsername() = " + nestedClosedProjections.getUsername());
+            System.out.println("nestedClosedProjections.getTeam().getName() = " + nestedClosedProjections.getTeam().getName());
+        }
+
+
+    }
 }
